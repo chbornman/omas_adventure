@@ -1,5 +1,7 @@
 services:
-  omas-game2:
+  omas_adventure:
+    container_name: omas_adventure
+    image: omas_adventure
     build: .
     ports:
       - "1213:8080"
