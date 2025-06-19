@@ -6,17 +6,26 @@ import random
 import asyncio
 import json
 from datetime import datetime
-import posthog
-from dotenv import load_dotenv
 
 pygame.init()
 
-# Load environment variables
-load_dotenv()
-
-# PostHog Analytics Configuration
-posthog.api_key = os.getenv('POSTHOG_API_KEY')
-posthog.host = os.getenv('POSTHOG_HOST', 'https://app.posthog.com')
+# JavaScript bridge for PostHog analytics
+def track_event(event_name, properties=None):
+    """Track analytics event via JavaScript PostHog SDK"""
+    if hasattr(sys, '_emscripten'):  # Running in browser
+        try:
+            import platform
+            if properties is None:
+                properties = {}
+            # Convert to JSON string for JavaScript
+            props_json = json.dumps(properties)
+            # Call JavaScript PostHog function
+            platform.window.trackEvent(event_name, props_json)
+        except Exception as e:
+            print(f"Analytics tracking failed: {e}")
+    # For local development, you could log to console or file
+    else:
+        print(f"Analytics: {event_name} - {properties}")
 
 # Game Constants - All tunable parameters in one place
 
@@ -362,7 +371,7 @@ class Player:
             self.current_char = self.characters[index]
             
             # Track character usage
-            posthog.capture('character_switched', {
+            track_event('character_switched', {
                 'from_character': old_character,
                 'to_character': self.current_char.name,
                 'timestamp': datetime.now().isoformat()
@@ -1679,7 +1688,7 @@ async def show_game_over_screen(screen, final_score, round_reached):
     """Show game over screen with character chase animation"""
     
     # Track game over event
-    posthog.capture('game_over', {
+    track_event('game_over', {
         'final_score': final_score,
         'round_reached': round_reached,
         'timestamp': datetime.now().isoformat()
@@ -1803,7 +1812,7 @@ async def main():
         total_score = 0
         
         # Track game start
-        posthog.capture('game_started', {
+        track_event('game_started', {
             'timestamp': datetime.now().isoformat(),
             'starting_round': current_round
         })
@@ -1959,7 +1968,7 @@ async def run_game(screen, current_round, total_score):
             
             if await show_finish_screen(screen, total_score, current_round):
                 # Track level completion
-                posthog.capture('level_completed', {
+                track_event('level_completed', {
                     'round_completed': current_round,
                     'score_earned': score,
                     'total_score': total_score,

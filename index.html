@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oma's Adventure</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer {
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: #000;
+        }
+        #loading {
+            color: #fff;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div id="loading">Loading Oma's Adventure...</div>
+    </div>
+
+    <!-- PostHog Analytics -->
+    <script src="analytics.js"></script>
+    
+    <!-- Pygame Web Runtime -->
+    <script type="module">
+        import { main } from './main.js';
+        main();
+    </script>
+</body>
+</html>

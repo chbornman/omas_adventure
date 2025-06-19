@@ -9,6 +9,7 @@ Help Shoogie, Florence, and Sue (Oma's three adorable pets) navigate through inc
 - **Three Unique Characters**: Shoogie (cat), Florence (cat), and Sue (dog) - each with special abilities
 - **Lives System**: Each character has 3 hearts - lose them all and they're out of the adventure!
 - **~~High Score System~~**: ⚠️ Currently disabled - high score persistence not working in web environment
+- **~~Analytics~~**: ⚠️ PostHog integration not functional - tracking events are implemented but not properly connected in web environment
 - **Beautiful Screens**: Animated title screen, game over sequences, and peaceful bedtime celebrations
 - **Progressive Difficulty**: Each round brings more enemies and longer levels
 - **Score Persistence**: Keep your earned points across rounds - only lose progress when all characters are defeated
