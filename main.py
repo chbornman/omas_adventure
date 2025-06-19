@@ -6,8 +6,17 @@ import random
 import asyncio
 import json
 from datetime import datetime
+import posthog
+from dotenv import load_dotenv
 
 pygame.init()
+
+# Load environment variables
+load_dotenv()
+
+# PostHog Analytics Configuration
+posthog.api_key = os.getenv('POSTHOG_API_KEY')
+posthog.host = os.getenv('POSTHOG_HOST', 'https://app.posthog.com')
 
 # Game Constants - All tunable parameters in one place
 
@@ -348,8 +357,16 @@ class Player:
         
     def switch_character(self, index):
         if 0 <= index < len(self.characters):
+            old_character = self.current_char.name if self.current_char else None
             self.current_char_index = index
             self.current_char = self.characters[index]
+            
+            # Track character usage
+            posthog.capture('character_switched', {
+                'from_character': old_character,
+                'to_character': self.current_char.name,
+                'timestamp': datetime.now().isoformat()
+            })
             
     def add_character(self, character_name):
         # Add a character if not already collected
@@ -1660,6 +1677,14 @@ async def show_title_screen(screen):
 
 async def show_game_over_screen(screen, final_score, round_reached):
     """Show game over screen with character chase animation"""
+    
+    # Track game over event
+    posthog.capture('game_over', {
+        'final_score': final_score,
+        'round_reached': round_reached,
+        'timestamp': datetime.now().isoformat()
+    })
+    
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 72)
     medium_font = pygame.font.Font(None, 48)
@@ -1776,6 +1801,13 @@ async def main():
         # Start new game
         current_round = 1
         total_score = 0
+        
+        # Track game start
+        posthog.capture('game_started', {
+            'timestamp': datetime.now().isoformat(),
+            'starting_round': current_round
+        })
+        
         game_running = await run_game(screen, current_round, total_score)
         
         if not game_running:
@@ -1926,6 +1958,15 @@ async def run_game(screen, current_round, total_score):
             total_score += score
             
             if await show_finish_screen(screen, total_score, current_round):
+                # Track level completion
+                posthog.capture('level_completed', {
+                    'round_completed': current_round,
+                    'score_earned': score,
+                    'total_score': total_score,
+                    'treats_collected': treats_collected,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
                 # Advance to next round
                 current_round += 1
                 player = Player(100, 400)
