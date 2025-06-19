@@ -126,30 +126,47 @@ MAX_PATROL_DISTANCE = 300
 HIGH_SCORE_FILE = "data/high_scores.json"
 MAX_HIGH_SCORES = 10
 
+# Global high scores storage that works in both desktop and web
+_high_scores_cache = None
+
 def load_high_scores():
     """Load high scores from persistent storage"""
+    global _high_scores_cache
+    
+    # If we have cached scores, return them
+    if _high_scores_cache is not None:
+        return _high_scores_cache.copy()
+    
+    # Try to load from file
     try:
-        # Create data directory if it doesn't exist
         os.makedirs(os.path.dirname(HIGH_SCORE_FILE), exist_ok=True)
         
         if os.path.exists(HIGH_SCORE_FILE):
             with open(HIGH_SCORE_FILE, 'r') as f:
-                return json.load(f)
-        else:
-            return []
+                scores = json.load(f)
+                _high_scores_cache = scores
+                return scores
     except:
-        return []
+        pass
+    
+    # Return empty list if no scores exist yet
+    _high_scores_cache = []
+    return []
 
 def save_high_scores(scores):
     """Save high scores to persistent storage"""
+    global _high_scores_cache
+    
+    # Always update the cache
+    _high_scores_cache = scores.copy()
+    
+    # Try to save to file (works in desktop, may fail silently in web)
     try:
-        # Create data directory if it doesn't exist
         os.makedirs(os.path.dirname(HIGH_SCORE_FILE), exist_ok=True)
-        
         with open(HIGH_SCORE_FILE, 'w') as f:
             json.dump(scores, f, indent=2)
     except:
-        pass  # Fail silently if can't save
+        pass  # Fail silently - cache will persist for this session
 
 def add_high_score(score, round_num, player_name="Anonymous"):
     """Add a new high score and return if it made the top 10"""
@@ -1605,9 +1622,6 @@ async def show_title_screen(screen):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return  # Start the game
-                elif event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
         
         # Clear screen with gradient background
         screen.fill(BLUE)
@@ -1622,25 +1636,23 @@ async def show_title_screen(screen):
         subtitle_rect = subtitle_text.get_rect(center=(SCREEN_WIDTH // 2, 140))
         screen.blit(subtitle_text, subtitle_rect)
         
+        # TODO: Re-enable high scores display later
         # High scores
-        high_score_title = medium_font.render("HIGH SCORES", True, YELLOW)
-        score_rect = high_score_title.get_rect(center=(SCREEN_WIDTH // 2, 200))
-        screen.blit(high_score_title, score_rect)
+        # high_score_title = medium_font.render("HIGH SCORES", True, YELLOW)
+        # score_rect = high_score_title.get_rect(center=(SCREEN_WIDTH // 2, 200))
+        # screen.blit(high_score_title, score_rect)
         
-        high_scores = get_high_scores()
-        for i, score_line in enumerate(high_scores[:8]):  # Show top 8
-            score_text = small_font.render(score_line, True, WHITE)
-            score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, 240 + i * 30))
-            screen.blit(score_text, score_rect)
+        # high_scores = get_high_scores()
+        # for i, score_line in enumerate(high_scores[:8]):  # Show top 8
+        #     score_text = small_font.render(score_line, True, WHITE)
+        #     score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, 240 + i * 30))
+        #     screen.blit(score_text, score_rect)
         
         # Instructions
         start_text = medium_font.render("Press ENTER to start", True, GREEN)
         start_rect = start_text.get_rect(center=(SCREEN_WIDTH // 2, 520))
         screen.blit(start_text, start_rect)
         
-        quit_text = small_font.render("Press ESC to quit", True, GRAY)
-        quit_rect = quit_text.get_rect(center=(SCREEN_WIDTH // 2, 560))
-        screen.blit(quit_text, quit_rect)
         
         pygame.display.flip()
         clock.tick(FPS)
@@ -1674,17 +1686,18 @@ async def show_game_over_screen(screen, final_score, round_reached):
     animation_time = 0
     chase_speed = 3
     
+    # TODO: Re-enable high score functionality later
     # Check if this is a high score and get player name if needed
-    current_scores = load_high_scores()
-    is_high_score = (len(current_scores) < MAX_HIGH_SCORES or 
-                     final_score > current_scores[-1]["score"] if current_scores else True)
+    # current_scores = load_high_scores()
+    # is_high_score = (len(current_scores) < MAX_HIGH_SCORES or 
+    #                  final_score > current_scores[-1]["score"] if current_scores else True)
     
-    player_name = "Anonymous"
-    if is_high_score:
-        player_name = await get_player_name(screen, final_score, round_reached)
+    # player_name = "Anonymous"
+    # if is_high_score:
+    #     player_name = await get_player_name(screen, final_score, round_reached)
     
     # Add to high scores with player name
-    made_high_score = add_high_score(final_score, round_reached, player_name)
+    # made_high_score = add_high_score(final_score, round_reached, player_name)
     
     while True:
         for event in pygame.event.get():
@@ -1715,10 +1728,6 @@ async def show_game_over_screen(screen, final_score, round_reached):
         round_rect = round_text.get_rect(center=(SCREEN_WIDTH // 2, 140))
         screen.blit(round_text, round_rect)
         
-        if made_high_score:
-            new_high_text = medium_font.render("NEW HIGH SCORE!", True, YELLOW)
-            high_rect = new_high_text.get_rect(center=(SCREEN_WIDTH // 2, 180))
-            screen.blit(new_high_text, high_rect)
         
         # Character chase animation
         animation_time += 1
@@ -1741,16 +1750,6 @@ async def show_game_over_screen(screen, final_score, round_reached):
         if animation_time * chase_speed > SCREEN_WIDTH + 300:
             animation_time = 0
         
-        # High scores
-        high_score_title = medium_font.render("HIGH SCORES", True, YELLOW)
-        score_rect = high_score_title.get_rect(center=(SCREEN_WIDTH // 2, 350))
-        screen.blit(high_score_title, score_rect)
-        
-        high_scores = get_high_scores()
-        for i, score_line in enumerate(high_scores[:6]):  # Show top 6
-            score_text = small_font.render(score_line, True, WHITE)
-            score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, 390 + i * 25))
-            screen.blit(score_text, score_rect)
         
         # Instructions
         continue_text = medium_font.render("Press ENTER to continue", True, GREEN)
@@ -1767,6 +1766,7 @@ async def main():
     pygame.display.set_caption("Oma's Adventure")
     clock = pygame.time.Clock()
     print("Display initialized")
+    
     
     # Main game loop with screens
     while True:

@@ -8,7 +8,7 @@ Help Shoogie, Florence, and Sue (Oma's three adorable pets) navigate through inc
 ### ✨ Game Features
 - **Three Unique Characters**: Shoogie (cat), Florence (cat), and Sue (dog) - each with special abilities
 - **Lives System**: Each character has 3 hearts - lose them all and they're out of the adventure!
-- **High Score System**: Compete for the top 10 spots with persistent leaderboards and player names
+- **~~High Score System~~**: ⚠️ Currently disabled - high score persistence not working in web environment
 - **Beautiful Screens**: Animated title screen, game over sequences, and peaceful bedtime celebrations
 - **Progressive Difficulty**: Each round brings more enemies and longer levels
 - **Score Persistence**: Keep your earned points across rounds - only lose progress when all characters are defeated
@@ -74,7 +74,7 @@ services:
       - high_scores_data:/app/data
 ```
 
-High scores persist between container restarts thanks to Docker volumes.
+⚠️ **Note**: High score functionality is currently disabled due to persistence issues in the web environment. The feature is commented out in the code and can be re-enabled once the storage issue is resolved.
 
 ## 🙏 Credits
 
@@ -87,7 +87,7 @@ This game was built upon the excellent foundation provided by [JMWhitworth's Pyg
 
 ## 🔄 Development
 
-To update the game while preserving high scores:
+To update the game:
 ```bash
 # Make your changes, then:
 docker compose build

@@ -1,1 +1,0 @@
-pygbag --app_name "Oma's Adventure" --ume_block 0 --can_close 1 .
