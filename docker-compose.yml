@@ -1,0 +1,11 @@
+services:
+  omas-game2:
+    build: .
+    ports:
+      - "1213:8080"
+    volumes:
+      # Mount just the data directory for high scores persistence
+      - high_scores_data:/app/data
+
+volumes:
+  high_scores_data:
